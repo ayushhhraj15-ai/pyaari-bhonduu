@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pyaari bhonduu 💖</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel">
+
+    const bestieName = "Pyaari bhonduu";
+
+    const compliments = [
+      "You light up every room you walk into.",
+      "Your laugh is my favorite soundtrack.",
+      "You’re thoughtful in a million tiny ways.",
+      "You make hard days softer and good days better.",
+      "Your dreams inspire me to dream bigger.",
+      "You’re brave, kind, and ridiculously fun.",
+    ];
+
+    function usePageUrl() {
+      const [url, setUrl] = React.useState("");
+      React.useEffect(() => { setUrl(window.location.href); }, []);
+      return url;
+    }
+
+    function Heart({ left, size, duration, onClick }) {
+      return (
+        <div
+          onClick={onClick}
+          className="absolute -top-10 select-none cursor-pointer"
+          style={{ left: `${left}%`, animation: `fall ${duration}ms linear forwards` }}
+        >
+          <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className="text-pink-500 drop-shadow">
+            <path d="M12 21s-6.716-4.22-9.193-7.34C-0.74 10.34 1.17 5.5 5.356 5.5c2.08 0 3.33 1.08 4.144 2.23.814-1.15 2.064-2.23 4.144-2.23 4.186 0 6.096 4.84 2.549 8.16C18.716 16.78 12 21 12 21z" />
+          </svg>
+        </div>
+      );
+    }
+
+    function BestieSite() {
+      const url = usePageUrl();
+      const [gameOn, setGameOn] = React.useState(false);
+      const [time, setTime] = React.useState(30);
+      const [score, setScore] = React.useState(0);
+      const [hearts, setHearts] = React.useState([]);
+      const spawnRef = React.useRef(null);
+      const timerRef = React.useRef(null);
+
+      React.useEffect(() => () => { clearInterval(spawnRef.current); clearInterval(timerRef.current); }, []);
+
+      React.useEffect(() => {
+        if (gameOn) {
+          spawnRef.current = setInterval(() => {
+            setHearts(prev => [...prev, {
+              id: Math.random().toString(36).slice(2),
+              left: Math.random() * 90 + 5,
+              size: Math.random() * 16 + 20,
+              duration: Math.random() * 1200 + 1400,
+              born: Date.now(),
+            }]);
+          }, 450);
+          timerRef.current = setInterval(() => setTime(t => (t > 0 ? t - 1 : 0)), 1000);
+        }
+        return () => { clearInterval(spawnRef.current); clearInterval(timerRef.current); };
+      }, [gameOn]);
+
+      React.useEffect(() => {
+        if (!gameOn) return;
+        const gc = setInterval(() => {
+          const now = Date.now();
+          setHearts(prev => prev.filter(h => now - h.born < h.duration + 200));
+        }, 500);
+        return () => clearInterval(gc);
+      }, [gameOn]);
+
+      React.useEffect(() => { if (time === 0 && gameOn) setGameOn(false); }, [time, gameOn]);
+
+      const startGame = () => { setScore(0); setTime(30); setHearts([]); setGameOn(true); };
+      const handleHit = id => { setScore(s => s + 1); setHearts(prev => prev.filter(h => h.id !== id)); };
+
+      const qrImgSrc = url ? `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(url)}` : "";
+
+      const downloadQR = () => {
+        if (!qrImgSrc) return;
+        const a = document.createElement("a");
+        a.href = qrImgSrc;
+        a.download = "bestie-qr.png";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      };
+
+      return (
+        <div className="min-h-screen bg-gradient-to-b from-rose-50 via-pink-50 to-white text-slate-800">
+          <style>{`@keyframes fall { from { transform: translateY(0); } to { transform: translateY(110vh); } }`}</style>
+
+          <header className="sticky top-0 z-30 backdrop-blur bg-white/60 border-b border-rose-100">
+            <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">💖</span>
+                <h1 className="text-xl font-semibold">For {bestieName}</h1>
+              </div>
+              <nav className="flex gap-4 text-sm">
+                <a href="#about" className="hover:underline">About</a>
+                <a href="#reasons" className="hover:underline">Reasons</a>
+                <a href="#game" className="hover:underline">Game</a>
+                <a href="#qr" className="hover:underline">QR</a>
+              </nav>
+            </div>
+          </header>
+
+          <main className="max-w-4xl mx-auto px-4">
+            <section id="about" className="pt-10 pb-8 grid md:grid-cols-2 gap-6 items-center">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight">
+                  Hey {bestieName}! <span className="text-pink-600">You're amazing</span> and this little site is all for you.
+                </h2>
+                <p className="mt-4 text-slate-600 leading-relaxed">
+                  I made this to celebrate you — your kindness, your humor, and the way you make everything brighter.
+                </p>
+              </div>
+            </section>
+
+            <section id="reasons" className="py-8">
+              <h3 className="text-2xl font-bold mb-4">Reasons I adore you</h3>
+              <ul className="grid sm:grid-cols-2 gap-3">
+                {compliments.map((c, i) => (
+                  <li key={i} className="p-4 rounded-2xl bg-white border border-rose-100 shadow-sm">
+                    <div className="flex gap-3 items-start">
+                      <span className="mt-1">🌷</span>
+                      <p className="leading-relaxed">{c}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section id="game" className="py-10">
+              <div className="p-4 rounded-3xl bg-white border border-rose-100 shadow">
+                <h3 className="text-xl font-bold mb-2">Catch the Hearts</h3>
+                <div className="text-sm text-slate-600 mb-3">Click falling hearts to score before time runs out!</div>
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="px-3 py-1 rounded-full bg-rose-50 border border-rose-100">Time: {time}s</span>
+                  <span className="px-3 py-1 rounded-full bg-rose-50 border border-rose-100">Score: {score}</span>
+                  {!gameOn ? (
+                    <button onClick={startGame} className="ml-auto px-4 py-2 rounded-xl bg-pink-600 text-white hover:bg-pink-700">
+                      {time === 0 ? "Play again" : "Start"}
+                    </button>
+                  ) : (
+                    <button onClick={() => setGameOn(false)} className="ml-auto px-4 py-2 rounded-xl border border-rose-200 hover:bg-rose-50">
+                      Pause
+                    </button>
+                  )}
+                </div>
+                <div className="relative overflow-hidden rounded-2xl border border-rose-100 bg-gradient-to-b from-white to-rose-50" style={{height: 360}}>
+                  {hearts.map(h => <Heart key={h.id} left={h.left} size={h.size} duration={h.duration} onClick={() => handleHit(h.id)} />)}
+                  {!gameOn && (
+                    <div className="absolute inset-0 grid place-items-center text-center p-6 text-slate-600">
+                      <div>
+                        <div className="text-5xl mb-2">💖</div>
+                        <p className="mb-4">{time === 0 ? `Final score: ${score}!` : "Ready to catch some hearts?"}</p>
+                        <button onClick={startGame} className="px-4 py-2 rounded-xl bg-pink-600 text-white hover:bg-pink-700">
+                          {time === 0 ? "Play again" : "Start"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            <section id="qr" className="py-10">
+              <div className="p-4 rounded-3xl bg-white border border-rose-100 shadow">
+                <h3 className="text-xl font-bold mb-2">Share with a QR Code</h3>
+                <img src={qrImgSrc} alt="QR Code" className="w-56 h-56 rounded-xl border border-rose-100" />
+                <button onClick={downloadQR} className="mt-3 px-4 py-2 rounded-xl bg-pink-600 text-white hover:bg-pink-700">Download QR</button>
+              </div>
+            </section>
+          </main>
+
+          <footer className="py-10 text-center text-xs text-slate-500">
+            Made with ❤️ for {bestieName}
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<BestieSite />);
+
+  </script>
+</body>
+</html>
